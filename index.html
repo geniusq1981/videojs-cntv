@@ -1,0 +1,19 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>videojs-cntv Demo</title>
+  <link href="/node_modules/video.js/dist/video-js.css" rel="stylesheet">
+</head>
+<body>
+  <video
+    id="vid1"
+    class="video-js"
+    width="640" height="264"
+    data-setup='{ "techOrder": ["cntv"], "sources": [{ "type": "video/cntv", "src": "https://cntv.com/99275308"}], "cntv": { "color": "#fbc51b"} }'
+  >
+  </video>
+  <script src="/node_modules/video.js/dist/video.js"></script>
+  <script src="/dist/videojs-cntv.js"></script>
+</body>
+</html>
