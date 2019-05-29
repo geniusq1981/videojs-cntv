@@ -1,13 +1,31 @@
 {
-  "name": "videojs-vimeo",
-  "author": "Jimmy Bourassa &lt;jbourassa@didacte.com&gt;",
-  "license": "MIT",
-  "main": [
-    "dist/videojs-vimeo.min.js"
+  "name": "videojs-cntv",
+  "version": "2.0.0",
+  "homepage": "https://github.com/eXon/videojs-cntv",
+  "authors": [
+    "Benoit Tremblay <trembl.ben@gmail.com>"
   ],
+  "description": "cntv playback technology for Video.js",
+  "main": "dist/cntv.min.js",
+  "license": "MIT",
   "keywords": [
+    "video",
     "videojs",
-    "videojs-plugin"
-  ]
+    "video.js",
+    "vjs",
+    "cntv",
+    "tech"
+  ],
+  "ignore": [
+    ".npmignore",
+    ".gitignore",
+    ".jshintrc",
+    ".jshintignore",
+    "src",
+    "tests",
+    "karma.conf.js"
+  ],
+  "dependencies": {
+    "video.js": "^5.0.0"
+  }
 }
-
