@@ -1,6 +1,6 @@
-# Videojs Vimeo plugin
+# Videojs cntv plugin
 
-Videojs Vimeo plugin using the official Vimeo Player API. This is heavily
+Videojs cntv plugin using the official Vimeo Player API. This is heavily
 inspired by the official [VideoJS YouTube project](https://github.com/videojs/videojs-youtube).
 
 ## Installation
@@ -10,6 +10,6 @@ point your package manage at this repo.
 
 ## Usage
 
-See [index.html](https://github.com/videojs/videojs-vimeo/blob/master/index.html)
+See [index.html](https://github.com/geniusq1981/videojs-cntv/blob/master/index.html)
 
 [videojs]: http://videojs.com/
