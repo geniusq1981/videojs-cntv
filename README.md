@@ -25,12 +25,12 @@ Use branch `vjs4` if you still using old VideoJS `v4.x`.
     data-setup='{ "techOrder": ["cntv"], "sources": [{ "type": "video/cntv", "src": "https://www.cntv.com/watch?v=xjS6SftYQaQ"}] }'
   >
   </video>
-
   <script src="../node_modules/video.js/dist/video.min.js"></script>
   <script src="../dist/cntv.min.js"></script>
 </body>
 </html>
 ```
+
 
 See the examples folder for more
 
