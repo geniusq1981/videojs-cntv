@@ -249,13 +249,38 @@ THE SOFTWARE. */
       }
 
       //this.ytPlayer = new YT.Player(this.options_.techId, playerConfig);
-	    cordova.plugins.mytoast.startFloatPlayer('', function onSuccess(message) {
+			if(this.el_){
+				console.log(this.el_.parentNode.clientWidth);
+				console.log(this.el_.parentNode.clientHeight);
+				console.log(this.el_.parentNode.offsetLeft);
+				console.log(this.el_.parentNode.offsetTop);
+			}
+			
+
+	    cordova.plugins.mytoast.startFloatPlayer("",{
+                'x' : Math.round(this.getElPosition(this.el_.parentNode).x*window.devicePixelRatio)||300,
+                'y' : Math.round(this.getElPosition(this.el_.parentNode).y*window.devicePixelRatio)||200,
+                'width' : Math.round(this.el_.parentNode.clientWidth*window.devicePixelRatio)||480,
+                'height' : Math.round(this.el_.parentNode.clientHeight*window.devicePixelRatio)||270
+            }, function onSuccess(message) {
 			console.log(message);
 		}, function onFail(message) {
 			console.log('Failed because: ' + message);
 		});
     },
-
+/**
+			 * @param {Object} e
+			 */
+			getElPosition:function(e) {
+			    var x = 0, y = 0;
+			    while(e != null) {
+			        x += e.offsetLeft;
+			        y += e.offsetTop;
+			        e = e.offsetParent;
+			    }
+			    return { x: x, y: y };
+			},
+			
     onPlayerReady: function() {
       if (this.options_.muted) {
         this.ytPlayer.mute();
