@@ -65,7 +65,11 @@ THE SOFTWARE. */
 				"playUrl": options.playUrl,
 				"startPosition": 0,
 				"dhDecryption": "",
-				"adModel": 0
+				"adModel": 0,
+				"appKey":options.appKey,
+				"channeId":options.channalId,
+				"cdnDispathURl":options.cdnDispathURl,
+				"dynamicKeyUrl":options.dynamicKeyUrl,
 			}
 			this.playStatus = {
 				state: PlayerState.UNSTARTED,
@@ -371,10 +375,12 @@ THE SOFTWARE. */
 			this.player_.trigger('ratechange');
 		},
 
-		onPlayerStateChange: function(e) {
-			var state = e.data;
+		onPlayerStateChange: function(state) {
+			//var state = e.data;
 			console.log("onPlayerStateChange");
-
+			console.log("377 lastState"+this.lastState);
+			console.log("378 errorNumber"+this.errorNumber);
+			console.log(state);
 			if (state === this.lastState || this.errorNumber) {
 				return;
 			}
@@ -389,11 +395,11 @@ THE SOFTWARE. */
 					this.player_.trigger('ratechange');
 					break;
 
-				case YT.PlayerState.ENDED:
+				case PlayerState.ENDED:
 					this.player_.trigger('ended');
 					break;
 
-				case YT.PlayerState.PLAYING:
+				case PlayerState.PLAYING:
 					this.player_.trigger('timeupdate');
 					this.player_.trigger('durationchange');
 					this.player_.trigger('playing');
@@ -404,7 +410,7 @@ THE SOFTWARE. */
 					}
 					break;
 
-				case YT.PlayerState.PAUSED:
+				case PlayerState.PAUSED:
 					this.player_.trigger('canplay');
 					if (this.isSeeking) {
 						this.onSeeked();
@@ -413,7 +419,7 @@ THE SOFTWARE. */
 					}
 					break;
 
-				case YT.PlayerState.BUFFERING:
+				case PlayerState.BUFFERING:
 					this.player_.trigger('timeupdate');
 					this.player_.trigger('waiting');
 					break;
@@ -564,10 +570,14 @@ THE SOFTWARE. */
 
 		play: function() {
 			if (this.ytPlayer) {
+				console.log(this.playStatus.state);
 				if (this.playStatus.state == PlayerState.PAUSED) {
 					this.ytPlayer.play();
-					this.player_.trigger('play');
+					this.playStatus.state = PlayerState.PLAYING;
+					this.onPlayerStateChange(this.playStatus.state);
+					//this.player_.trigger('playing');
 				} else {
+					this.onPlayerStateChange(-1);
 					this.ytPlayer.startFloatPlayer(this.playInfo, {
 						'x': Math.round(this.getElPosition(this.el_.parentNode).x * window.devicePixelRatio) || 300,
 						'y': Math.round(this.getElPosition(this.el_.parentNode).y * window.devicePixelRatio) || 200,
@@ -576,15 +586,32 @@ THE SOFTWARE. */
 					}, function onSuccess(message) {
 						//console.log(message);
 						//console.log(this);
-						this.player_.trigger('play');
+						//this.player_.trigger('play');
 						switch (message.eventType) {
 							case "BUFFER_START_EVENT":
+								console.log("BUFFER_START_EVENT")
+								//this.player_.trigger('timeupdate');
+								//this.player_.trigger('waiting');
+								this.playStatus.state = PlayerState.BUFFERING;
+								this.onPlayerStateChange(this.playStatus.state);
 								break;
 							case "BUFFER_END_EVENT":
+								console.log("BUFFER_END_EVENT")
 								this.playStatus.duration = message.duration > 0 ? message.duration : 0;
-								this.player_.trigger('durationchange');
+								//this.player_.trigger('durationchange');
+								//this.player_.trigger('playing');
+								//this.player_.trigger('play');
+								this.playStatus.state = PlayerState.PLAYING;
+								this.onPlayerStateChange(this.playStatus.state);
 								break;
 							case "PREPARED_EVENT":
+								console.log("PREPARED_EVENT")
+								this.playStatus.duration = message.duration > 0 ? message.duration : 0;
+								//this.player_.trigger('durationchange');
+								//this.player_.trigger('playing');
+								//this.player_.trigger('play');
+								this.playStatus.state = PlayerState.PLAYING;
+								this.onPlayerStateChange(this.playStatus.state);
 								//this.playStatus.duration = message.duration>0?message.duration:0;
 								//this.player_.trigger('durationchange');
 								break;
@@ -595,19 +622,21 @@ THE SOFTWARE. */
 							case "COMPLETION_EVENT":
 								this.playStatus.state = PlayerState.ENDED;
 								this.player_.trigger('ended');
+								this.onPlayerStateChange(this.playStatus.state);
 								break;
 							case "SEEK_EVENT":
 								this.player_.trigger('seeking');
-								this.playStatus.time = message.currentPosition >= 0 ? message.currentPosition : 0;
-								this.player_.trigger('timeupdate');
-								this.player_.trigger('seeked');
+								//this.playStatus.time = message.currentPosition >= 0 ? message.currentPosition : 0;
+								//this.player_.trigger('timeupdate');
+								//this.playStatus.state = PlayerState.
+								//this.player_.trigger('seeked');
 								break;
 							default:
 								break;
 						}
 					}.bind(this), function onFail(message) {
 						console.log('Failed because: ' + message);
-					});
+					}.bind(this));
 				}
 			}
 		},
@@ -615,9 +644,10 @@ THE SOFTWARE. */
 		pause: function() {
 			if (this.ytPlayer) {
 				this.ytPlayer.pause();
-				this.playStatus.state == PlayerState.PAUSED
+				this.playStatus.state = PlayerState.PAUSED
+				this.onPlayerStateChange(this.playStatus.state);
 				//this.player_.trigger('canplay');
-				this.player_.trigger('pause');
+				//this.player_.trigger('pause');
 			}
 		},
 
@@ -633,11 +663,11 @@ THE SOFTWARE. */
 
 		setCurrentTime: function(seconds) {
 
-
+			console.log(seconds)
 			this.ytPlayer.seekTo(seconds, function(message) {
-
-			}, function() {
-
+					console.log(message);
+			}, function(err) {
+					console.log(err);
 			});
 			this.player_.trigger('timeupdate');
 			this.player_.trigger('seeking');
@@ -657,14 +687,15 @@ THE SOFTWARE. */
 		},
 
 		onSeeked: function() {
-			clearInterval(this.checkSeekedInPauseInterval);
+			//clearInterval(this.checkSeekedInPauseInterval);
+			console.log("seek complete")
 			this.isSeeking = false;
-
+			this.player_.trigger('seeked');
 			if (this.wasPausedBeforeSeek) {
 				this.pause();
 			}
 
-			this.player_.trigger('seeked');
+			
 		},
 
 		playbackRate: function() {
@@ -774,7 +805,11 @@ THE SOFTWARE. */
 		},
 
 		enterFullScreen: function() {
-			this.ytPlayer.fullScreen();
+			this.ytPlayer.fullScreen(function(msg){
+				console.log(msg);
+			},function(err){
+				console.log(err);
+			});
 			return true;
 		},
 		// Tries to get the highest resolution thumbnail available for the video
@@ -836,15 +871,6 @@ THE SOFTWARE. */
 		return result;
 	};
 
-	function apiLoaded() {
-		YT.ready(function() {
-			cntv.isApiReady = true;
-
-			for (var i = 0; i < cntv.apiReadyQueue.length; ++i) {
-				cntv.apiReadyQueue[i].initCNTVPlayer();
-			}
-		});
-	}
 
 	function loadScript(src, callback) {
 		var loaded = false;
@@ -888,11 +914,6 @@ THE SOFTWARE. */
 	}
 
 	cntv.apiReadyQueue = [];
-
-	if (typeof document !== 'undefined') {
-		//loadScript('https://www.cntv.com/iframe_api', apiLoaded);
-		//injectCss();
-	}
 
 	// Older versions of VJS5 doesn't have the registerTech function
 	if (typeof videojs.registerTech !== 'undefined') {
