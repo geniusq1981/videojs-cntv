@@ -579,10 +579,10 @@ THE SOFTWARE. */
 				} else {
 					this.onPlayerStateChange(-1);
 					this.ytPlayer.startFloatPlayer(this.playInfo, {
-						'x': Math.round(this.getElPosition(this.el_.parentNode).x * window.devicePixelRatio) || 300,
-						'y': Math.round(this.getElPosition(this.el_.parentNode).y * window.devicePixelRatio) || 200,
-						'width': Math.round(this.el_.parentNode.clientWidth * window.devicePixelRatio) || 480,
-						'height': Math.round(this.el_.parentNode.clientHeight * window.devicePixelRatio) || 270
+						'x': Math.round(this.getElPosition(this.el_.parentNode).x * window.devicePixelRatio),
+						'y': Math.round(this.getElPosition(this.el_.parentNode).y * window.devicePixelRatio),
+						'width': Math.round(this.el_.parentNode.clientWidth * window.devicePixelRatio),
+						'height': Math.round(this.el_.parentNode.clientHeight * window.devicePixelRatio)
 					}, function onSuccess(message) {
 						//console.log(message);
 						//console.log(this);
