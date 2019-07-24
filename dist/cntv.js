@@ -41,7 +41,8 @@ THE SOFTWARE. */
 		ENDED: 0,
 		PLAYING: 1,
 		PAUSED: 2,
-		BUFFERING: 3
+		BUFFERING: 3,
+		BUFFEREND: 4
 	};
 	var Tech = videojs.getTech('Tech');
 
@@ -54,7 +55,7 @@ THE SOFTWARE. */
 			this.setSrc(this.options_.source, true);
 			console.log(options);
 			this.playInfo = {
-				"play_type": 0,
+				"play_type": options.play_type,
 				"columnId": "",
 				"seriesID": options.seriesID,
 				"programId": options.programId,
@@ -63,9 +64,9 @@ THE SOFTWARE. */
 				"duration": options.duration,
 				"extend": "",
 				"playUrl": options.playUrl,
-				"startPosition": 0,
-				"dhDecryption": "",
-				"adModel": 0,
+				"startPosition": options.startPosition,
+				"dhDecryption": options.dhDecryption,
+				"adModel": options.adModel,
 				"appKey":options.appKey,
 				"channeId":options.channalId,
 				"cdnDispathURl":options.cdnDispathURl,
@@ -400,6 +401,7 @@ THE SOFTWARE. */
 					break;
 
 				case PlayerState.PLAYING:
+					this.player_.trigger('canplay');
 					this.player_.trigger('timeupdate');
 					this.player_.trigger('durationchange');
 					this.player_.trigger('playing');
@@ -422,6 +424,7 @@ THE SOFTWARE. */
 				case PlayerState.BUFFERING:
 					this.player_.trigger('timeupdate');
 					this.player_.trigger('waiting');
+					//this.player_.trigger('canplay');
 					break;
 			}
 		},
@@ -571,13 +574,10 @@ THE SOFTWARE. */
 		play: function() {
 			if (this.ytPlayer) {
 				console.log(this.playStatus.state);
-				if (this.playStatus.state == PlayerState.PAUSED) {
-					this.ytPlayer.play();
-					this.playStatus.state = PlayerState.PLAYING;
+				if(this.playStatus.state == PlayerState.UNSTARTED) {
+					//this.onPlayerStateChange(-1);
+					console.log("startFloatPlayer firsttime");
 					this.onPlayerStateChange(this.playStatus.state);
-					//this.player_.trigger('playing');
-				} else {
-					this.onPlayerStateChange(-1);
 					this.ytPlayer.startFloatPlayer(this.playInfo, {
 						'x': Math.round(this.getElPosition(this.el_.parentNode).x * window.devicePixelRatio),
 						'y': Math.round(this.getElPosition(this.el_.parentNode).y * window.devicePixelRatio),
@@ -587,17 +587,20 @@ THE SOFTWARE. */
 						//console.log(message);
 						//console.log(this);
 						//this.player_.trigger('play');
+						//this.playStatus.duration = message.duration > 0 ? message.duration/1000 : 0;
+						//this.player_.trigger('canplay');
 						switch (message.eventType) {
 							case "BUFFER_START_EVENT":
 								console.log("BUFFER_START_EVENT")
 								//this.player_.trigger('timeupdate');
 								//this.player_.trigger('waiting');
+								this.playStatus.duration = message.duration > 0 ? message.duration/1000 : 0;
 								this.playStatus.state = PlayerState.BUFFERING;
 								this.onPlayerStateChange(this.playStatus.state);
 								break;
 							case "BUFFER_END_EVENT":
 								console.log("BUFFER_END_EVENT")
-								this.playStatus.duration = message.duration > 0 ? message.duration : 0;
+								this.playStatus.duration = message.duration > 0 ? message.duration/1000 : 0;
 								//this.player_.trigger('durationchange');
 								//this.player_.trigger('playing');
 								//this.player_.trigger('play');
@@ -606,17 +609,17 @@ THE SOFTWARE. */
 								break;
 							case "PREPARED_EVENT":
 								console.log("PREPARED_EVENT")
-								this.playStatus.duration = message.duration > 0 ? message.duration : 0;
+								this.playStatus.duration = message.duration > 0 ? message.duration/1000 : 0;
 								//this.player_.trigger('durationchange');
 								//this.player_.trigger('playing');
 								//this.player_.trigger('play');
 								this.playStatus.state = PlayerState.PLAYING;
 								this.onPlayerStateChange(this.playStatus.state);
-								//this.playStatus.duration = message.duration>0?message.duration:0;
+								//this.playStatus.duration = message.duration>0?message.duration/1000:0;
 								//this.player_.trigger('durationchange');
 								break;
 							case "POSITION_EVENT":
-								this.playStatus.time = message.currentPosition >= 0 ? message.currentPosition : 0;
+								this.playStatus.time = message.currentPosition >= 0 ? message.currentPosition/1000 : 0;
 								this.player_.trigger('timeupdate');
 								break;
 							case "COMPLETION_EVENT":
@@ -637,6 +640,12 @@ THE SOFTWARE. */
 					}.bind(this), function onFail(message) {
 						console.log('Failed because: ' + message);
 					}.bind(this));
+				}
+				if (this.playStatus.state == PlayerState.PAUSED) {
+					this.ytPlayer.play();
+					this.playStatus.state = PlayerState.PLAYING;
+					this.onPlayerStateChange(this.playStatus.state);
+					//this.player_.trigger('playing');
 				}
 			}
 		},
@@ -664,7 +673,7 @@ THE SOFTWARE. */
 		setCurrentTime: function(seconds) {
 
 			console.log(seconds)
-			this.ytPlayer.seekTo(seconds, function(message) {
+			this.ytPlayer.seekTo(seconds*1000, function(message) {
 					console.log(message);
 			}, function(err) {
 					console.log(err);
@@ -801,14 +810,31 @@ THE SOFTWARE. */
 		},
 
 		supportsFullScreen: function() {
+			console.log("supportsFullScreen")
 			return true;
 		},
-
 		enterFullScreen: function() {
-			this.ytPlayer.fullScreen(function(msg){
-				console.log(msg);
-			},function(err){
-				console.log(err);
+			// this.ytPlayer.fullScreen(function(msg){
+			// 	console.log(msg);
+			// },function(err){
+			// 	console.log(err);
+			// });
+			console.log("enterFullScreen")
+			this.ytPlayer.setDisplayRect({
+				'x': Math.round(this.getElPosition(this.el_.parentNode).x * window.devicePixelRatio),
+				'y': Math.round(this.getElPosition(this.el_.parentNode).y * window.devicePixelRatio),
+				'width': Math.round(this.el_.parentNode.clientWidth * window.devicePixelRatio),
+				'height': Math.round(this.el_.parentNode.clientHeight * window.devicePixelRatio)
+			});
+			return true;
+		},
+		exitFullScreen: function() {
+			console.log("exitFullScreen")
+			this.ytPlayer.setDisplayRect({
+				'x': Math.round(this.getElPosition(this.el_.parentNode).x * window.devicePixelRatio),
+				'y': Math.round(this.getElPosition(this.el_.parentNode).y * window.devicePixelRatio),
+				'width': Math.round(this.el_.parentNode.clientWidth * window.devicePixelRatio),
+				'height': Math.round(this.el_.parentNode.clientHeight * window.devicePixelRatio)
 			});
 			return true;
 		},
