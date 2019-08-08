@@ -385,13 +385,11 @@ THE SOFTWARE. */
 			if (state === this.lastState || this.errorNumber) {
 				return;
 			}
-
 			this.lastState = state;
-
 			switch (state) {
 				case -1:
 					this.player_.trigger('loadstart');
-					this.player_.trigger('loadedmetadata');
+					//this.player_.trigger('loadedmetadata');
 					this.player_.trigger('durationchange');
 					this.player_.trigger('ratechange');
 					break;
@@ -413,7 +411,6 @@ THE SOFTWARE. */
 					break;
 
 				case PlayerState.PAUSED:
-					this.player_.trigger('canplay');
 					if (this.isSeeking) {
 						this.onSeeked();
 					} else {
@@ -422,9 +419,7 @@ THE SOFTWARE. */
 					break;
 
 				case PlayerState.BUFFERING:
-					this.player_.trigger('timeupdate');
 					this.player_.trigger('waiting');
-					//this.player_.trigger('canplay');
 					break;
 			}
 		},
@@ -584,7 +579,7 @@ THE SOFTWARE. */
 						'width': Math.round(this.el_.parentNode.clientWidth * window.devicePixelRatio),
 						'height': Math.round(this.el_.parentNode.clientHeight * window.devicePixelRatio)
 					}, function onSuccess(message) {
-						//console.log(message);
+						console.log(message);
 						//console.log(this);
 						//this.player_.trigger('play');
 						//this.playStatus.duration = message.duration > 0 ? message.duration/1000 : 0;
@@ -623,9 +618,12 @@ THE SOFTWARE. */
 								this.player_.trigger('timeupdate');
 								break;
 							case "COMPLETION_EVENT":
+								console.log("player completion")
+								console.log(message)
+								if(message.completion=="1"||message.completion=="2"){
 								this.playStatus.state = PlayerState.ENDED;
-								this.player_.trigger('ended');
 								this.onPlayerStateChange(this.playStatus.state);
+								}
 								break;
 							case "SEEK_EVENT":
 								this.player_.trigger('seeking');
